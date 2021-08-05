@@ -1,0 +1,66 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           spaceInvadersClone
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/spaceInvadersClone#readme>
+homepage:       https://github.com/githubuser/spaceInvadersClone#readme
+bug-reports:    https://github.com/githubuser/spaceInvadersClone/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2021 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/spaceInvadersClone
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_spaceInvadersClone
+  hs-source-dirs:
+      src
+  build-depends:
+      ListZipper >=1.2
+    , base >=4.7 && <5
+    , gloss
+  default-language: Haskell2010
+
+executable spaceInvadersClone-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_spaceInvadersClone
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O2 -Wall
+  build-depends:
+      ListZipper >=1.2
+    , base >=4.7 && <5
+    , gloss
+    , spaceInvadersClone
+  default-language: Haskell2010
+
+test-suite spaceInvadersClone-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_spaceInvadersClone
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      ListZipper >=1.2
+    , base >=4.7 && <5
+    , gloss
+    , spaceInvadersClone
+  default-language: Haskell2010
