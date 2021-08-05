@@ -15,7 +15,7 @@ type Player = (Float, Picture)
 
 data WorldState =
     WorldState {
-        aliens      :: [Alien],
+        aliens      :: Z.Zipper Alien,
         alienLine   :: Int,
         player      :: Player,
         speed       :: Float
@@ -38,40 +38,32 @@ updatePlayerPosition direction (x, p) =
 drawAlien :: Alien -> Picture
 drawAlien ((x, y), (vx, vy), p) = translate x y p
 
-takeFirst :: Int -> [Alien] -> [Alien]
-takeFirst _ [] = []
-takeFirst 0 (a:aliens) = []
-takeFirst n (a:aliens) = a : takeFirst (n - 1) aliens
+goRightNTimes :: Z.Zipper a -> Int -> Z.Zipper a
+goRightNTimes z 0 = z
+goRightNTimes z n
+  | Z.endp z  = z
+  | otherwise = goRightNTimes (Z.right z) (n - 1)
 
-takeLast :: Int -> [Alien] -> [Alien]
-takeLast _ [] = []
-takeLast 0 (a:aliens) = aliens
-takeLast n (a:aliens) = takeLast (n - 1) aliens
-
-updateAlien :: Int -> Float -> Float -> [Alien] -> [Alien]
-updateAlien n speed dt aliens = 
-    take 9 aliens ++ 
-    map (updateAlienVelocity . updateAlienPosition speed dt) ((drop (n * 9) . take 9) aliens) ++ 
-    takeLast (length aliens - (n + 1) * 9 - 1) aliens
+updateAlien :: Int -> Float -> Float -> Z.Zipper Alien -> Z.Zipper Alien
+updateAlien n speed dt = fmap (updateAlienVelocity . updateAlienPosition speed dt)
 
 updateAlienPosition :: Float -> Float -> Alien -> Alien
-updateAlienPosition speed dt ((x, y), v@(vx, vy), p) =
-    ((x + vx * speed * dt, y + vy * dt), v, p)
+updateAlienPosition speed dt ((x, y), v@(vx, vy), p) = ((x + vx * speed * dt, y + vy * dt), v, p)
 
 updateAlienVelocity :: Alien -> Alien
 updateAlienVelocity b@((x, y), (vx, vy), p)
-    | x < -adjX  = ((-adjX, y - 20), (-vx, vy), p)
-    | x > adjX   = ((adjX, y - 20), (-vx, vy), p)
-    | y < -adjY  = ((x, -adjY), (vx, vy), p)
-    | y > adjY   = ((x, adjY), (vx, vy), p)
-    | otherwise  = ((x, y), (vx, vy), p)
+        | x < -adjX  = ((-adjX, y - 20), (-vx, vy), p)
+        | x > adjX   = ((adjX, y - 20), (-vx, vy), p)
+        | y < -adjY  = ((x, -adjY), (vx, vy), p)
+        | y > adjY   = ((x, adjY), (vx, vy), p)
+        | otherwise  = ((x, y), (vx, vy), p)
     where
-        adjX = width - (alienSize / 2)
-        adjY = (1.5 * height) - (alienSize / 2)
+        adjX = width - alienSize / 2
+        adjY = 1.5 * height - alienSize / 2
 
 -- | Desenho dos modelos
 drawModels :: WorldState -> Picture
-drawModels ws = pictures (map drawAlien (aliens ws) ++ [drawPlayer (player ws)])
+drawModels ws = pictures (map drawAlien (Z.toList $ aliens ws) ++ [drawPlayer (player ws)])
 
 -- | Gerenciador de eventos com interação do usuário
 eventHandler :: Event -> WorldState -> WorldState
@@ -103,7 +95,7 @@ runGame = do
         aliensLine2 = [((x, y), (25, 0), color blue $ rectangleSolid alienSize alienSize) | x <- [(-80), (-60) .. 80], y <- [80]]
         aliensLine3 = [((x, y), (25, 0), color green  $ rectangleSolid alienSize alienSize) | x <- [(-80), (-60) .. 80], y <- [120]]
         aliensLine4 = [((x, y), (25, 0), color yellow  $ rectangleSolid alienSize alienSize) | x <- [(-80), (-60) .. 80], y <- [160]]
-        aliens = aliensLine1 ++ aliensLine2 ++ aliensLine3 ++ aliensLine4
+        aliens = Z.fromList (aliensLine1 ++ aliensLine2 ++ aliensLine3 ++ aliensLine4)
         -- aliens = [((x, y), (25, 0), color red $ rectangleSolid alienSize alienSize) | x <- [(-80), (-60) .. 80], y <- [40, 80 .. 240]]
         player = (0, color blue $ rectangleSolid alienSize alienSize)
         initialWorld = WorldState aliens 0 player 1
