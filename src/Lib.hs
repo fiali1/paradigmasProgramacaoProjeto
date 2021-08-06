@@ -15,7 +15,7 @@ type Player = (Float, Picture)
 
 data WorldState =
     WorldState {
-        aliens      :: Z.Zipper Alien,
+        aliens      :: Z.Zipper [Alien],
         alienLine   :: Int,
         player      :: Player,
         speed       :: Float
@@ -44,8 +44,17 @@ goRightNTimes z n
   | Z.endp z  = z
   | otherwise = goRightNTimes (Z.right z) (n - 1)
 
-updateAlien :: Int -> Float -> Float -> Z.Zipper Alien -> Z.Zipper Alien
-updateAlien n speed dt = fmap (updateAlienVelocity . updateAlienPosition speed dt)
+goLeftNTimes :: Z.Zipper a -> Int -> Z.Zipper a
+goLeftNTimes z 0 = z
+goLeftNTimes z n
+  | Z.beginp z  = z
+  | otherwise = goLeftNTimes (Z.left z) (n - 1)
+
+applyChanges :: Z.Zipper [Alien] -> Int -> Float -> Float -> Z.Zipper [Alien]
+applyChanges alien n speed dt = Z.replace (fmap (updateAlienVelocity . updateAlienPosition speed dt) (Z.cursor (goRightNTimes alien n))) (goRightNTimes alien n)
+
+updateAlien :: Int -> Float -> Float -> Z.Zipper [Alien] -> Z.Zipper [Alien]
+updateAlien n speed dt aliens = applyChanges aliens n speed dt
 
 updateAlienPosition :: Float -> Float -> Alien -> Alien
 updateAlienPosition speed dt ((x, y), v@(vx, vy), p) = ((x + vx * speed * dt, y + vy * dt), v, p)
@@ -63,7 +72,7 @@ updateAlienVelocity b@((x, y), (vx, vy), p)
 
 -- | Desenho dos modelos
 drawModels :: WorldState -> Picture
-drawModels ws = pictures (map drawAlien (Z.toList $ aliens ws) ++ [drawPlayer (player ws)])
+drawModels ws = pictures $ fmap drawAlien (concat $ Z.toList $ aliens ws) ++ [drawPlayer $ player ws]
 
 -- | Gerenciador de eventos com interação do usuário
 eventHandler :: Event -> WorldState -> WorldState
@@ -81,12 +90,12 @@ eventHandler _ ws = ws
 updateModel :: Float -> WorldState -> WorldState
 updateModel dt ws = WorldState aliens' alienLine' player' speed'
     where
-        aliens' = updateAlien (alienLine ws) (speed ws) dt (aliens ws)
-        alienLine'
-            | alienLine ws <= 4 = alienLine ws + 1
-            | otherwise         = 1
+        aliens' = goLeftNTimes (updateAlien (alienLine ws) (speed ws) dt (aliens ws)) 3
+        alienLine' = (alienLine ws + 1) `mod` 4
         player' = player ws
         speed' = speed ws
+
+-- updateAlien (alienLine ws) (speed ws) dt (aliens ws)
 
 runGame :: IO ()
 runGame = do
@@ -95,7 +104,7 @@ runGame = do
         aliensLine2 = [((x, y), (25, 0), color blue $ rectangleSolid alienSize alienSize) | x <- [(-80), (-60) .. 80], y <- [80]]
         aliensLine3 = [((x, y), (25, 0), color green  $ rectangleSolid alienSize alienSize) | x <- [(-80), (-60) .. 80], y <- [120]]
         aliensLine4 = [((x, y), (25, 0), color yellow  $ rectangleSolid alienSize alienSize) | x <- [(-80), (-60) .. 80], y <- [160]]
-        aliens = Z.fromList (aliensLine1 ++ aliensLine2 ++ aliensLine3 ++ aliensLine4)
+        aliens = Z.fromList [aliensLine1, aliensLine2, aliensLine3, aliensLine4]
         -- aliens = [((x, y), (25, 0), color red $ rectangleSolid alienSize alienSize) | x <- [(-80), (-60) .. 80], y <- [40, 80 .. 240]]
         player = (0, color blue $ rectangleSolid alienSize alienSize)
         initialWorld = WorldState aliens 0 player 1
