@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - gloss
 - ListZipper >= 1.2
+- random >= 1.2
 
 library:
   source-dirs: src

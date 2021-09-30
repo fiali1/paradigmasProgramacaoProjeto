@@ -36,6 +36,7 @@ packages:
 # forks / in-progress versions pinned to a git hash. For example:
 #
 extra-deps:
+  - random-1.2.0
   - ListZipper-1.2.0.2@sha256:5bbb5a4cc7f1cae962310407f711b874c087b48a0ba39b9fcce84cdb0ff5244c,639
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
