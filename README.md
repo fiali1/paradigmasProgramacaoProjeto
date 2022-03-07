@@ -4,9 +4,11 @@ Adaptação do jogo clássico Space Invaders em Haskell como projeto final para 
 
 Para jogar, executar o comando ```stack run```, após realizar o build do projeto.
 
-* Setas: movimento horizontal 
-* Espaço: disparo de projéteis
-* Enter: reinício do jogo ao final
-* Esc: encerrar o jogo
+* **Setas**: movimento horizontal 
+* **Espaço**: disparo de projéteis
+* **Enter**: reinício do jogo ao final
+* **Esc**: encerrar o jogo
+
+## Demo 
 
 ![grab-landing-page](https://github.com/fiali1/spaceInvadersHaskell/blob/main/readmeGif.gif)
